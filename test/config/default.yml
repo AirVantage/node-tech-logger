@@ -1,0 +1,26 @@
+# This yml file is loaded and logged for tests.
+
+# Should we use several nodejs process for the server ?
+# This is not related to infrastructure 'clustering' (several machines serving the application)
+useCluster: false
+# Static resources (js, css) can be optimized.
+# Cache headers can be set to only expire the resources after a certain number of seconds
+# (0 means no cache.)
+resources:
+  optimize: false
+  cache:
+    seconds: 0
+
+contextUrl: ""
+
+# Logging configuration
+logging:
+    # In "dev" env, log everything
+    env: dev
+
+## URLs for services
+api:
+  ## Configuration for APIs (authorization, user infos, etc...)
+  portal:
+    serverUrl : http://localhost:8080
+

@@ -1,0 +1,21 @@
+{
+  "name": "node-tech-logger",
+  "version": "1.0.0",
+  "description": "Winston logger customized for AirVantage",
+  "main": "techLogger.js",
+  "scripts": {
+    "test": "export NODE_CONFIG_DIR=test/config;node test/testSplash.js"
+  },
+  "keywords": [
+    "logger",
+    "winston"
+  ],
+  "dependencies": {
+    "underscore": "^1.7.0",
+    "winston": "^0.8.1"
+  },
+  "devDependencies": {
+    "config": "^1.7.0",
+    "js-yaml": "^3.2.2"
+  }
+}
