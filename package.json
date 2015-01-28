@@ -6,6 +6,10 @@
   "scripts": {
     "test": "export NODE_CONFIG_DIR=test/config;node test/testSplash.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AirVantage/node-tech-logger.git"
+  },
   "keywords": [
     "logger",
     "winston"
