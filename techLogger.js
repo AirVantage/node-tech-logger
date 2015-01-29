@@ -9,6 +9,11 @@ var cluster = require("cluster");
 var winston = require("winston");
 var splash = require("./lib/splash");
 
+var consologger;
+var filogger;
+var syslogger;
+var syslogOptions;
+
 module.exports = {
 
     /**
@@ -18,17 +23,65 @@ module.exports = {
     setup: function(configuration) {
 
         // Logger configuration
-        winston.remove(winston.transports.Console);
-        winston.add(winston.transports.Console, {
-            colorize: true,
-            level: "debug"
+        // Winston levels correctly ordered
+        // DO NOT TRUST Winston level definition as it does not comply
+        // to a "logical" threshold mechanism
+        var levels = {
+            emerg: 7,
+            alert: 6,
+            crit: 5,
+            error: 4,
+            warning: 3,
+            notice: 2,
+            info: 1,
+            debug: 0,
+        };
+
+        consologger = new(winston.Logger)({
+            transports: [
+                new winston.transports.Console({
+                    levels: levels,
+                    colorize: true,
+                    level: "debug"
+                })
+            ]
         });
+
         if (configuration.logging.file) {
-            winston.add(winston.transports.File, {
-                filename: configuration.logging.file.name,
-                maxsize: configuration.logging.file.maxSize,
-                maxFiles: configuration.logging.file.maxNumber,
-                json: configuration.logging.file.json,
+            filogger = new(winston.Logger)({
+                transports: [
+                    new winston.transports.File({
+                        levels: levels,
+                        filename: configuration.logging.file.name,
+                        maxsize: configuration.logging.file.maxSize,
+                        maxFiles: configuration.logging.file.maxNumber,
+                        json: configuration.logging.file.json,
+                        level: "info"
+                    })
+                ]
+            });
+        }
+
+        if (configuration.logging.syslog) {
+            syslogOptions = configuration.logging.syslog;
+            require("winston-syslog");
+            // syslog options
+            var options = {
+                host: configuration.logging.syslog.host,
+                port: 514,
+                protocol: "udp4",
+                app_name: configuration.logging.syslog.appName,
+                facility: "local0",
+                level: configuration.logging.syslog.thresholdLevel || "info"
+            };
+
+
+            syslogger = new(winston.Logger)({
+                levels: levels,
+                colors: winston.config.syslog.colors,
+                transports: [
+                    new winston.transports.Syslog(options)
+                ]
             });
         }
     },
@@ -84,20 +137,16 @@ module.exports = {
  *             {String} log.message
  */
 function doLog(log) {
-    switch (log.level) {
-        case "debug":
-            winston.debug(log.message);
-            break;
-        case "warn":
-            winston.warn(log.message);
-            break;
-        case "error":
-            winston.error(log.message);
-            break;
 
-        default:
-            winston.info(log.message);
-            break;
+    consologger.log(log.level, log.message);
+    if (filogger) {
+        filogger.log(log.level, log.message);
+    }
+
+    if (syslogger) {
+        // "warn" level is named "warning" for syslog
+        var logLevel = log.level === "warn" ? "warning" : log.level;
+        syslogger.log(logLevel, syslogOptions.appName, log.message);
     }
 }
 
@@ -113,7 +162,7 @@ function doLog(log) {
  * @param  {Array} log   [list of message parts]
  * @return {[type]}       [description]
  */
-function logOrForward(level, log)  {
+function logOrForward(level, log) {
 
     var message = log.map(function(element) {
         if (typeof element !== "string") {

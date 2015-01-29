@@ -14,10 +14,15 @@ node-tech-logger
     var configuration = {
         logging: {
             file: {
-                name: "logs/av-server.log",
+                name: "logs/webapp.log",
                 maxSize: 5000000,
                 maxNumber: 5,
                 json: false
+            },
+            syslog: {
+                host: "syslogdHost" // The host running syslogd, defaults to localhost.
+                appName: "yourApplicationName",
+                thresholdLevel: "warning",
             }
         }
     };
