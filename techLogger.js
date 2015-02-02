@@ -26,32 +26,43 @@ module.exports = {
         // Winston levels correctly ordered
         // DO NOT TRUST Winston level definition as it does not comply
         // to a "logical" threshold mechanism
-        var levels = {
-            emerg: 7,
-            alert: 6,
-            crit: 5,
-            error: 4,
-            warning: 3,
-            notice: 2,
-            info: 1,
-            debug: 0,
+        var levelsConfig = {
+            levels: {
+                emerg: 7,
+                alert: 6,
+                crit: 5,
+                error: 4,
+                warning: 3,
+                notice: 2,
+                info: 1,
+                debug: 0
+            },
+            colors: {
+                emerg: "magenta",
+                alert: "magenta",
+                crit: "red",
+                error: "red",
+                warning: "yellow",
+                notice: "green",
+                info: "blue",
+                debug: "cyan"
+            }
         };
 
         consologger = new(winston.Logger)({
             transports: [
                 new winston.transports.Console({
-                    levels: levels,
                     colorize: true,
                     level: "debug"
                 })
             ]
         });
+        consologger.setLevels(levelsConfig.levels);
 
         if (configuration.logging.file) {
             filogger = new(winston.Logger)({
                 transports: [
                     new winston.transports.File({
-                        levels: levels,
                         filename: configuration.logging.file.name,
                         maxsize: configuration.logging.file.maxSize,
                         maxFiles: configuration.logging.file.maxNumber,
@@ -60,6 +71,7 @@ module.exports = {
                     })
                 ]
             });
+            filogger.setLevels(levelsConfig.levels);
         }
 
         if (configuration.logging.syslog) {
@@ -72,18 +84,20 @@ module.exports = {
                 protocol: "udp4",
                 app_name: configuration.logging.syslog.appName,
                 facility: "local0",
-                level: configuration.logging.syslog.thresholdLevel || "info"
+                level: configuration.logging.syslog.thresholdLevel
             };
 
 
             syslogger = new(winston.Logger)({
-                levels: levels,
                 colors: winston.config.syslog.colors,
                 transports: [
                     new winston.transports.Syslog(options)
                 ]
             });
+            syslogger.setLevels(levelsConfig.levels);
         }
+
+        winston.addColors(levelsConfig.colors);
     },
 
     /**
@@ -108,12 +122,28 @@ module.exports = {
         logOrForward("info", Array.prototype.slice.call(arguments));
     },
 
+    notice: function() {
+        logOrForward("notice", Array.prototype.slice.call(arguments));
+    },
+
     warn: function() {
-        logOrForward("warn", Array.prototype.slice.call(arguments));
+        logOrForward("warning", Array.prototype.slice.call(arguments));
     },
 
     error: function() {
         logOrForward("error", Array.prototype.slice.call(arguments));
+    },
+
+    crit: function() {
+        logOrForward("crit", Array.prototype.slice.call(arguments));
+    },
+
+    alert: function() {
+        logOrForward("alert", Array.prototype.slice.call(arguments));
+    },
+
+    emerg: function() {
+        logOrForward("emerg", Array.prototype.slice.call(arguments));
     },
 
     createExpressLoggerStream: function(level) {
@@ -144,9 +174,7 @@ function doLog(log) {
     }
 
     if (syslogger) {
-        // "warn" level is named "warning" for syslog
-        var logLevel = log.level === "warn" ? "warning" : log.level;
-        syslogger.log(logLevel, syslogOptions.appName, log.message);
+        syslogger.log(log.level, syslogOptions.appName, log.message);
     }
 }
 
