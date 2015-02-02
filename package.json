@@ -14,7 +14,9 @@
     "keywords": ["logger", "winston"],
     "dependencies": {
         "lodash": "^3.0.1",
-        "winston": "^0.8.1",
+        "winston": "^0.8.1"
+    },
+    "optionalDependencies": {
         "winston-syslog": "^1.0.0"
     },
     "devDependencies": {
