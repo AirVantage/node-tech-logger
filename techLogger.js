@@ -4,7 +4,7 @@
  *
  * Only the master cluster is allowed to call Winston.
  */
-var _ = require("underscore");
+var _ = require("lodash");
 var cluster = require("cluster");
 var winston = require("winston");
 var splash = require("./lib/splash");

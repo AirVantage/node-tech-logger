@@ -1,26 +1,24 @@
 {
-  "name": "node-tech-logger",
-  "version": "1.1.0",
-  "description": "Winston logger customized for AirVantage",
-  "main": "techLogger.js",
-  "scripts": {
-    "test": "export NODE_CONFIG_DIR=test/config;node test/testSplash.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/AirVantage/node-tech-logger.git"
-  },
-  "keywords": [
-    "logger",
-    "winston"
-  ],
-  "dependencies": {
-    "underscore": "^1.7.0",
-    "winston": "^0.8.1",
-    "winston-syslog": "^1.0.0"
-  },
-  "devDependencies": {
-    "config": "^1.7.0",
-    "js-yaml": "^3.2.2"
-  }
+    "name": "node-tech-logger",
+    "version": "1.1.0",
+    "description": "Winston logger customized for AirVantage",
+    "license": "MIT",
+    "main": "techLogger.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/AirVantage/node-tech-logger.git"
+    },
+    "scripts": {
+        "test": "export NODE_CONFIG_DIR=test/config;node test/testSplash.js"
+    },
+    "keywords": ["logger", "winston"],
+    "dependencies": {
+        "lodash": "^3.0.1",
+        "winston": "^0.8.1",
+        "winston-syslog": "^1.0.0"
+    },
+    "devDependencies": {
+        "config": "^1.7.0",
+        "js-yaml": "^3.2.2"
+    }
 }
