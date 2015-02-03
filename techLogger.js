@@ -168,7 +168,10 @@ module.exports = {
  */
 function doLog(log) {
 
-    consologger.log(log.level, log.message);
+    if (consologger) {
+        consologger.log(log.level, log.message);
+    }
+
     if (filogger) {
         filogger.log(log.level, log.message);
     }
