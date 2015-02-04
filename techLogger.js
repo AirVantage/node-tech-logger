@@ -118,9 +118,8 @@ function _log(level, log) {
         }
     }).join(" ");
 
-    if (!initialized) {
+    if (!defaulogger || !consologger) {
         _initialize();
-        initialized = true;
     }
 
     _doLog({
@@ -137,8 +136,9 @@ function _initialize() {
     if (config) {
         _setupLogger(config);
     } else {
-        if (!global.NODE_TECH_LOGGER_INIT) {
-            global.NODE_TECH_LOGGER_INIT = true;
+        if (typeof config == 'undefined') {
+            global.NODE_TECH_LOGGER_CFG = false; // to avoid multiple warn
+
             var msg = "\n\n!!! =========================================== !!!";
             msg += "\n!!!  No configuration set for node-tech-logger  !!!";
             msg += "\n!!! =========================================== !!!\n\n";
