@@ -1,6 +1,6 @@
 {
   "name": "node-tech-logger",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Winston logger customized for AirVantage",
   "license": "MIT",
   "main": "techLogger.js",
