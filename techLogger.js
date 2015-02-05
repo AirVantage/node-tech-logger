@@ -4,7 +4,6 @@
 var winston = require("winston");
 var splash = require("./lib/splash");
 
-var initialized = false;
 var defaulogger;
 var consologger;
 var filogger;
