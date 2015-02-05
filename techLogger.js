@@ -4,7 +4,6 @@
 var winston = require("winston");
 var splash = require("./lib/splash");
 
-var defaulogger;
 var consologger;
 var filogger;
 var syslogger;
@@ -84,10 +83,6 @@ module.exports = {
  */
 function _doLog(log) {
 
-    if (defaulogger) {
-        defaulogger.log(log.level, log.message);
-    }
-
     if (consologger) {
         consologger.log(log.level, log.message);
     }
@@ -117,8 +112,8 @@ function _log(level, log) {
         }
     }).join(" ");
 
-    if (!defaulogger || !consologger) {
-        _initialize();
+    if (!consologger) {
+        _initLogger();
     }
 
     _doLog({
@@ -128,29 +123,20 @@ function _log(level, log) {
 }
 
 /**
- * Initialize our logger
+ * Initialize winston logger
  */
-function _initialize() {
+function _initLogger() {
     var config = global.NODE_TECH_LOGGER_CFG;
-    if (config) {
-        _setupLogger(config);
-    } else {
-        if (typeof config == 'undefined') {
-            global.NODE_TECH_LOGGER_CFG = false; // to avoid multiple warn
+    if (!config) {
+        // Default config
+        config = {};
+        global.NODE_TECH_LOGGER_CFG = config;
 
-            var msg = "\n\n!!! =========================================== !!!";
-            msg += "\n!!!  No configuration set for node-tech-logger  !!!";
-            msg += "\n!!! =========================================== !!!\n\n";
-            console.warn(msg);
-        }
-        defaulogger = new _DefaultLogger();
+        var msg = "\n\n!!! =========================================== !!!";
+        msg += "\n!!!  No configuration set for node-tech-logger  !!!";
+        msg += "\n!!! =========================================== !!!\n\n";
+        console.warn(msg);
     }
-}
-
-/**
- * Setup winston logger
- */
-function _setupLogger(config) {
 
     // Logger configuration
     // Winston levels correctly ordered
@@ -228,22 +214,3 @@ function _setupLogger(config) {
 
     winston.addColors(levelsConfig.colors);
 }
-
-/**
- * Default logger using console
- */
-function _DefaultLogger() {
-    this.logFunctions = {
-        "debug": console.log,
-        "info": console.info,
-        "notice": console.info,
-        "warning": console.warn,
-        "error": console.error,
-        "crit": console.error,
-        "alert": console.error,
-        "emerg": console.error
-    };
-}
-_DefaultLogger.prototype.log = function(level, message) {
-    (this.logFunctions[level] || console.log)(message);
-};
