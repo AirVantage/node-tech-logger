@@ -14,11 +14,13 @@ module.exports = {
     /**
      * Setup the logger configuration
      * @param  {Object} config                           See below for details
+     * @param  {Object} config.console                   Console configuration (optional)
+     * @param  {Object} config.console.thresholdLevel    Minimum level of messages that the logger should log. Default is info.
      * @param  {Object} config.syslog                    Syslog configuration (optional)
      * @param  {Object} config.syslog.host               The host running syslogd.
      * @param  {Object} config.syslog.appName            The name of the application.
      * @param  {Object} config.syslog.thresholdLevel     Minimum level of messages that the logger should log. Default is info.
-     * @param  {Object} config.file                      Syslog configuration (optional)
+     * @param  {Object} config.file                      File configuration (optional)
      * @param  {Object} config.file.name                 The filename of the logfile to write.
      * @param  {Object} config.file.maxSize              Max size in bytes of the logfile, if the size is exceeded then a new file is created.
      * @param  {Object} config.file.maxNumber            Limit the number of files created when the size of the logfile is exceeded.
@@ -169,7 +171,7 @@ function _initLogger() {
         transports: [
             new winston.transports.Console({
                 colorize: true,
-                level: "debug"
+                level: (config.console && config.console.thresholdLevel) || "info"
             })
         ]
     });
