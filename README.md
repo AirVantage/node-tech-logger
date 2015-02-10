@@ -13,16 +13,20 @@ node-tech-logger
     // Setup the logger providing a configuration JSON object like
     var configuration = {
         logging: {
+            console: {
+                thresholdLevel: "info"
+            }
             file: {
                 name: "logs/webapp.log",
                 maxSize: 5000000,
                 maxNumber: 5,
-                json: false
+                json: false,
+                thresholdLevel: "info"
             },
             syslog: {
                 host: "syslogdHost" // The host running syslogd, defaults to localhost.
                 appName: "yourApplicationName",
-                thresholdLevel: "warning",
+                thresholdLevel: "warning"
             }
         }
     };
