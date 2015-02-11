@@ -2,8 +2,6 @@ node-tech-logger
 ================
 
 > Wraps Winston logger to provide a high level API.
->
-> It also synchronizes the various workers in multi cluster environnement. Only the master cluster is allowed to call Winston.
 
 ## Usage
 
