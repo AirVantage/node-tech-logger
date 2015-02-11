@@ -3,11 +3,40 @@
  */
 var winston = require("winston");
 var splash = require("./lib/splash");
+var _ = require("lodash");
 
+var configurationDate;
 var consologger;
 var filogger;
 var syslogger;
 var syslogOptions;
+
+// Winston levels correctly ordered
+// DO NOT TRUST Winston level definition as it does not comply to a "logical" threshold mechanism
+var levelsConfig = {
+    levels: {
+        emerg: 7,
+        alert: 6,
+        crit: 5,
+        error: 4,
+        warning: 3,
+        notice: 2,
+        info: 1,
+        debug: 0
+    },
+    colors: {
+        emerg: "magenta",
+        alert: "magenta",
+        crit: "red",
+        error: "red",
+        warning: "yellow",
+        notice: "green",
+        info: "blue",
+        debug: "cyan"
+    }
+};
+// Make winston aware of these colors
+winston.addColors(levelsConfig.colors);
 
 module.exports = {
 
@@ -26,9 +55,16 @@ module.exports = {
      * @param  {Object} config.file.maxNumber            Limit the number of files created when the size of the logfile is exceeded.
      * @param  {Object} config.file.json                 If true, messages will be logged as JSON. Default is false.
      * @param  {Object} config.file.thresholdLevel       Minimum level of messages that the logger should log. Default is info.
+     *
+     * @return {boolean} True if the configuration has changed, otherwise false.
      */
     setup: function(config) {
-        global.NODE_TECH_LOGGER_CFG = config;
+        var currentCfg = _getLoggerConfig();
+        var updated = !currentCfg || !_.isEqual(currentCfg.config, config);
+        if (updated) {
+            _setLoggerConfig(config);
+        }
+        return updated;
     },
 
     debug: function() {
@@ -114,8 +150,9 @@ function _log(level, log) {
         }
     }).join(" ");
 
-    if (!consologger) {
-        _initLogger();
+    if (!configurationDate || configurationDate < _getLoggerConfig().date) {
+        // Logger needs to be configured
+        _configureLogger();
     }
 
     _doLog({
@@ -125,14 +162,35 @@ function _log(level, log) {
 }
 
 /**
+ * Returns the configuration of the logger
+ *
+ * @return {Object} the configuration of the logger
+ */
+function _getLoggerConfig() {
+    return global.NODE_TECH_LOGGER_CFG;
+}
+
+/**
+ * Set the configuration of the logger
+ *
+ * @param  {Object} config the logger configuration
+ */
+function _setLoggerConfig(config) {
+    global.NODE_TECH_LOGGER_CFG = {
+        date: new Date().getTime(),
+        config: config
+    };
+}
+
+/**
  * Initialize winston logger
  */
-function _initLogger() {
-    var config = global.NODE_TECH_LOGGER_CFG;
-    if (!config) {
+function _configureLogger() {
+    var loggerConfig = _getLoggerConfig();
+    if (!loggerConfig) {
         // Default config
-        config = {};
-        global.NODE_TECH_LOGGER_CFG = config;
+        _setLoggerConfig({});
+        loggerConfig = _getLoggerConfig();
 
         var msg = "\n\n!!! =========================================== !!!";
         msg += "\n!!!  No configuration set for node-tech-logger  !!!";
@@ -140,43 +198,38 @@ function _initLogger() {
         console.warn(msg);
     }
 
-    // Logger configuration
-    // Winston levels correctly ordered
-    // DO NOT TRUST Winston level definition as it does not comply
-    // to a "logical" threshold mechanism
-    var levelsConfig = {
-        levels: {
-            emerg: 7,
-            alert: 6,
-            crit: 5,
-            error: 4,
-            warning: 3,
-            notice: 2,
-            info: 1,
-            debug: 0
-        },
-        colors: {
-            emerg: "magenta",
-            alert: "magenta",
-            crit: "red",
-            error: "red",
-            warning: "yellow",
-            notice: "green",
-            info: "blue",
-            debug: "cyan"
-        }
-    };
+    // Keep the date of the last applied configuration
+    configurationDate = loggerConfig.date;
 
-    consologger = new(winston.Logger)({
-        transports: [
-            new winston.transports.Console({
-                colorize: true,
-                level: (config.console && config.console.thresholdLevel) || "info"
-            })
-        ]
+    var config = loggerConfig.config;
+    _configureConsoleLogger(config);
+    _configureFileLogger(config);
+    _configureSyslogLogger(config);
+}
+
+/**
+ * Configure console logger
+ */
+function _configureConsoleLogger(config) {
+
+    if (consologger) {
+        consologger.remove(winston.transports.Console);
+    } else {
+        consologger = new(winston.Logger)({});
+        consologger.setLevels(levelsConfig.levels);
+    }
+    consologger.add(winston.transports.Console, {
+        colorize: true,
+        level: (config.console && config.console.thresholdLevel) || "info"
     });
-    consologger.setLevels(levelsConfig.levels);
+}
 
+/**
+ * Configure file logger
+ */
+function _configureFileLogger(config) {
+
+    filogger = null;
     if (config.file) {
         filogger = new(winston.Logger)({
             transports: [
@@ -191,7 +244,14 @@ function _initLogger() {
         });
         filogger.setLevels(levelsConfig.levels);
     }
+}
 
+/**
+ * Configure syslog logger
+ */
+function _configureSyslogLogger(config) {
+
+    syslogger = null;
     if (config.syslog) {
         syslogOptions = config.syslog;
         require("winston-syslog");
@@ -213,6 +273,4 @@ function _initLogger() {
         });
         syslogger.setLevels(levelsConfig.levels);
     }
-
-    winston.addColors(levelsConfig.colors);
 }
