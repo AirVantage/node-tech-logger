@@ -43,11 +43,6 @@ node-tech-logger
     logger.splash(app, configuration);
 ```
 
-## TODO
-
- * Add API documentation
- * Add multi cluster environnement example.
-
 
 
 
