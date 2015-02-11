@@ -197,7 +197,6 @@ function _configureLogger() {
         msg += "\n!!! =========================================== !!!\n\n";
         console.warn(msg);
     }
-    console.info("Logger has been configured");
 
     // Keep the date of the last applied configuration
     configurationDate = loggerConfig.date;
