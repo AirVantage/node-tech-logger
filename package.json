@@ -16,14 +16,14 @@
     "winston"
   ],
   "dependencies": {
-    "lodash": "^3.0.1",
+    "lodash": "^3.2.0",
     "winston": "^0.8.1"
   },
   "optionalDependencies": {
     "winston-syslog": "^1.0.0"
   },
   "devDependencies": {
-    "config": "^1.7.0",
+    "config": "^1.11.0",
     "js-yaml": "^3.2.2",
     "grunt": "^0.4.5",
     "grunt-release": "^0.11.0",
