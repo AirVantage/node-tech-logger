@@ -7,5 +7,5 @@ var app = {
     }
 };
 
-logger.setup(configuration);
+logger.setup(configuration.logging);
 logger.splash(app, configuration);
