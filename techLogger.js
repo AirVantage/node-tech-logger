@@ -1,6 +1,7 @@
 /**
  * Our Logger that wrap Winston logging library.
  */
+var path = require("path");
 var winston = require("winston");
 var splash = require("./lib/splash");
 var _ = require("lodash");
@@ -38,79 +39,121 @@ var levelsConfig = {
 // Make winston aware of these colors
 winston.addColors(levelsConfig.colors);
 
-module.exports = {
+module.exports = function(prefix) {
 
     /**
-     * Setup the logger configuration
-     * @param  {Object} config                           See below for details
-     * @param  {Object} config.console                   Console configuration (optional)
-     * @param  {Object} config.console.thresholdLevel    Minimum level of messages that the logger should log. Default is info.
-     * @param  {Object} config.syslog                    Syslog configuration (optional)
-     * @param  {Object} config.syslog.host               The host running syslogd.
-     * @param  {Object} config.syslog.appName            The name of the application.
-     * @param  {Object} config.syslog.thresholdLevel     Minimum level of messages that the logger should log. Default is info.
-     * @param  {Object} config.file                      File configuration (optional)
-     * @param  {Object} config.file.name                 The filename of the logfile to write.
-     * @param  {Object} config.file.maxSize              Max size in bytes of the logfile, if the size is exceeded then a new file is created.
-     * @param  {Object} config.file.maxNumber            Limit the number of files created when the size of the logfile is exceeded.
-     * @param  {Object} config.file.json                 If true, messages will be logged as JSON. Default is false.
-     * @param  {Object} config.file.thresholdLevel       Minimum level of messages that the logger should log. Default is info.
-     *
-     * @return {boolean} True if the configuration has changed, otherwise false.
+     * Compute caller file name to use it as prefix
      */
-    setup: function(config) {
-        var currentCfg = _getLoggerConfig();
-        var updated = !currentCfg || !_.isEqual(currentCfg.config, config);
-        if (updated) {
-            _setLoggerConfig(config);
-        }
-        return updated;
-    },
+    function _getCallerFile() {
+        var originalFunc = Error.prepareStackTrace;
 
-    debug: function() {
-        _log("debug", Array.prototype.slice.call(arguments));
-    },
+        var callerfile;
+        try {
+            var err = new Error();
+            var currentfile;
 
-    info: function() {
-        _log("info", Array.prototype.slice.call(arguments));
-    },
+            Error.prepareStackTrace = function(err, stack) {
+                return stack;
+            };
 
-    notice: function() {
-        _log("notice", Array.prototype.slice.call(arguments));
-    },
+            currentfile = err.stack.shift().getFileName();
 
-    warn: function() {
-        _log("warning", Array.prototype.slice.call(arguments));
-    },
+            while (err.stack.length) {
+                callerfile = err.stack.shift().getFileName();
 
-    error: function() {
-        _log("error", Array.prototype.slice.call(arguments));
-    },
-
-    crit: function() {
-        _log("crit", Array.prototype.slice.call(arguments));
-    },
-
-    alert: function() {
-        _log("alert", Array.prototype.slice.call(arguments));
-    },
-
-    emerg: function() {
-        _log("emerg", Array.prototype.slice.call(arguments));
-    },
-
-    createExpressLoggerStream: function(level) {
-        return {
-            write: function(message /*, encoding */ ) {
-                _log(level, message);
+                if (currentfile !== callerfile) break;
             }
-        };
-    },
+        } catch (e) {}
 
-    splash: function(app, configuration) {
-        splash(this, app, configuration);
+        Error.prepareStackTrace = originalFunc;
+
+        return (callerfile ? callerfile.split(path.sep).pop() : callerfile);
     }
+
+    var logPrefix = "[" + (prefix ? prefix : _getCallerFile()) + "]";
+
+    return {
+
+        /**
+         * Setup the logger configuration
+         * @param  {Object} config                           See below for details
+         * @param  {Object} config.console                   Console configuration (optional)
+         * @param  {Object} config.console.thresholdLevel    Minimum level of messages that the logger should log. Default is info.
+         * @param  {Object} config.syslog                    Syslog configuration (optional)
+         * @param  {Object} config.syslog.host               The host running syslogd.
+         * @param  {Object} config.syslog.appName            The name of the application.
+         * @param  {Object} config.syslog.thresholdLevel     Minimum level of messages that the logger should log. Default is info.
+         * @param  {Object} config.file                      File configuration (optional)
+         * @param  {Object} config.file.name                 The filename of the logfile to write.
+         * @param  {Object} config.file.maxSize              Max size in bytes of the logfile, if the size is exceeded then a new file is created.
+         * @param  {Object} config.file.maxNumber            Limit the number of files created when the size of the logfile is exceeded.
+         * @param  {Object} config.file.json                 If true, messages will be logged as JSON. Default is false.
+         * @param  {Object} config.file.thresholdLevel       Minimum level of messages that the logger should log. Default is info.
+         *
+         * @return {boolean} True if the configuration has changed, otherwise false.
+         */
+        setup: function(config) {
+            var currentCfg = _getLoggerConfig();
+            var updated = !currentCfg || !_.isEqual(currentCfg.config, config);
+            if (updated) {
+                _setLoggerConfig(config);
+            }
+            return updated;
+        },
+
+        debug: function() {
+            _log("debug", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
+        },
+
+        info: function() {
+            _log("info", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
+        },
+
+        notice: function() {
+            _log("notice", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
+        },
+
+        warn: function() {
+            _log("warning", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
+        },
+
+        error: function() {
+            _log("error", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
+        },
+
+        crit: function() {
+            _log("crit", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
+        },
+
+        alert: function() {
+            _log("alert", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
+        },
+
+        emerg: function() {
+            _log("emerg", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
+        },
+
+        createExpressLoggerStream: function(level) {
+            return {
+                write: function(message /*, encoding */ ) {
+                    _log(level, message);
+                }
+            };
+        },
+
+        splash: function(app, configuration) {
+            splash(this, app, configuration);
+        }
+    };
 };
+
+function _prefixLog(log, logPrefix) {
+    var prefixedLog = log;
+    prefixedLog.unshift(logPrefix);
+    // prefixedLog.unshift(_getCallerFile());
+
+    return prefixedLog;
+}
 
 /**
  * Log the message using winston or console
@@ -143,6 +186,7 @@ function _doLog(log) {
 function _log(level, log) {
 
     var message = log.map(function(element) {
+        console.log("element =>", typeof element);
         if (typeof element !== "string") {
             return JSON.stringify(element);
         } else {
