@@ -39,36 +39,7 @@ var levelsConfig = {
 // Make winston aware of these colors
 winston.addColors(levelsConfig.colors);
 
-module.exports = function(prefix) {
-
-    /**
-     * Compute caller file name to use it as prefix
-     */
-    function _getCallerFile() {
-        var originalFunc = Error.prepareStackTrace;
-
-        var callerfile;
-        try {
-            var err = new Error();
-            var currentfile;
-
-            Error.prepareStackTrace = function(err, stack) {
-                return stack;
-            };
-
-            currentfile = err.stack.shift().getFileName();
-
-            while (err.stack.length) {
-                callerfile = err.stack.shift().getFileName();
-
-                if (currentfile !== callerfile) break;
-            }
-        } catch (e) {}
-
-        Error.prepareStackTrace = originalFunc;
-
-        return (callerfile ? callerfile.split(path.sep).pop() : callerfile);
-    }
+function _makeLogger(prefix) {
 
     var logPrefix = "[" + (prefix ? prefix : _getCallerFile()) + "]";
 
@@ -145,7 +116,7 @@ module.exports = function(prefix) {
             splash(this, app, configuration);
         }
     };
-};
+}
 
 function _prefixLog(log, logPrefix) {
     var prefixedLog = log;
@@ -316,3 +287,45 @@ function _configureSyslogLogger(config) {
         syslogger.setLevels(levelsConfig.levels);
     }
 }
+
+/**
+ * Compute caller file name to use it as prefix
+ */
+function _getCallerFile() {
+    var originalFunc = Error.prepareStackTrace;
+
+    var callerfile;
+    try {
+        var err = new Error();
+        var currentfile, nextfile;
+
+        Error.prepareStackTrace = function(err, stack) {
+            return stack;
+        };
+
+        currentfile = err.stack.shift().getFileName();
+
+        while (err.stack.length) {
+            nextfile = err.stack.shift().getFileName();
+
+            if (nextfile === "module.js") {
+                callerfile = currentfile;
+                break;
+            } else if (nextfile !== currentfile) {
+                callerfile = nextfile;
+                break;
+            } else {
+                currentfile = nextfile;
+            }
+
+        }
+        callerfile = _.last(err.stack).getFilename();
+    } catch (e) {}
+
+    Error.prepareStackTrace = originalFunc;
+
+    return (callerfile ? callerfile.split(path.sep).pop() : callerfile);
+}
+
+var defaultLogger = _makeLogger();
+module.exports = _.extend(_makeLogger, defaultLogger);
