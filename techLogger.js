@@ -150,7 +150,6 @@ module.exports = function(prefix) {
 function _prefixLog(log, logPrefix) {
     var prefixedLog = log;
     prefixedLog.unshift(logPrefix);
-    // prefixedLog.unshift(_getCallerFile());
 
     return prefixedLog;
 }
@@ -186,7 +185,6 @@ function _doLog(log) {
 function _log(level, log) {
 
     var message = log.map(function(element) {
-        console.log("element =>", typeof element);
         if (typeof element !== "string") {
             return JSON.stringify(element);
         } else {
