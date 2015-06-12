@@ -307,11 +307,6 @@ function _getCallerFile() {
 
         while (err.stack.length) {
             nextfile = err.stack.shift().getFileName();
-            /*
-            console.log("Current file", currentfile);
-            console.log("Nextfile", nextfile);
-            console.log("Callerfile", callerfile);
-            */
 
             if (nextfile === "module.js") {
                 callerfile = currentfile;
