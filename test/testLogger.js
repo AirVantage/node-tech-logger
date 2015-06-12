@@ -1,4 +1,3 @@
-// var path = require("path");
 var configuration = require("config");
 var logger1 = require("../techLogger")("logger1");
 var logger2 = require("../techLogger")();
