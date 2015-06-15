@@ -294,10 +294,16 @@ function _configureSyslogLogger(config) {
 function _getCallerFile() {
     var originalFunc = Error.prepareStackTrace;
 
+    function shouldSkipFile(filename) {
+        return (_.endsWith(currentfile, "techLogger.js")
+                || currentfile === "module.js"
+                || currentfile === "node.js");
+    }
+
     var callerfile;
     try {
         var err = new Error();
-        var currentfile, nextfile;
+        var currentfile;
 
         Error.prepareStackTrace = function(err, stack) {
             return stack;
@@ -305,21 +311,11 @@ function _getCallerFile() {
 
         currentfile = err.stack.shift().getFileName();
 
-        while (err.stack.length) {
-            nextfile = err.stack.shift().getFileName();
-
-            if (nextfile === "module.js") {
-                callerfile = currentfile;
-                break;
-            } else if (nextfile !== currentfile) {
-                callerfile = nextfile;
-                break;
-            } else {
-                currentfile = nextfile;
-            }
-
+        while (err.stack.length && shouldSkipFile(currentfile)) {
+            currentfile = err.stack.shift().getFileName();
         }
-        callerfile = _.last(err.stack).getFilename();
+        callerfile = currentfile;
+
     } catch (e) {}
 
     Error.prepareStackTrace = originalFunc;
