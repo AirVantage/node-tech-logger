@@ -24,7 +24,8 @@ node-tech-logger
             host: "syslogdHost" // The host running syslogd, defaults to localhost.
             appName: "yourApplicationName",
             thresholdLevel: "warning"
-        }
+        },
+        keysToHide: ["pass", "secret"]
     };
     logger.setup(configuration);
 
