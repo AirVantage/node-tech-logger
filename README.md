@@ -6,7 +6,10 @@ node-tech-logger
 ## Usage
 
 ```javascript
+	// Each log will be prefixed by the file name
 	var logger = require("node-tech-logger");
+	// To customize this prefix you can instanciate a new logger like:
+	// var logger = require("node-tech-logger")("Awesome Prefix");
     ...
     // Setup the logger providing a configuration JSON object like
     var configuration = {
