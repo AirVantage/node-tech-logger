@@ -156,7 +156,9 @@ function _doLog(log) {
 function _log(level, log) {
 
     var message = log.map(function(element) {
-        if (typeof element !== "string") {
+        if (element instanceof Error) {
+            return element.stack;
+        } else if (typeof element !== "string") {
             return JSON.stringify(element);
         } else {
             return element;
@@ -295,9 +297,7 @@ function _getCallerFile() {
     var originalFunc = Error.prepareStackTrace;
 
     function shouldSkipFile(filename) {
-        return (_.endsWith(currentfile, "techLogger.js")
-                || currentfile === "module.js"
-                || currentfile === "node.js");
+        return (_.endsWith(currentfile, "techLogger.js") || currentfile === "module.js" || currentfile === "node.js");
     }
 
     var callerfile;
