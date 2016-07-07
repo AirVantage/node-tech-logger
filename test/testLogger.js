@@ -23,12 +23,17 @@ logger1.warn("This is a warn log");
 logger2.warn("This is a warn log");
 logger3.warn("This is a warn log");
 
+logger1.error("This is an error log");
+logger2.error("This is an error log");
+logger3.error("This is an error log");
+
 var apiError = {
     message: "API error message"
 };
-logger1.error("This is an error log", new Error(apiError.message).stack);
-logger2.error("This is an error log", new Error(apiError.message).stack);
-logger3.error("This is an error log", new Error(apiError.message).stack);
+
+logger1.error("This is an error log", new Error(apiError.message));
+logger2.error("This is an error log", new Error(apiError.message));
+logger3.error("This is an error log", new Error(apiError.message));
 
 logger1.crit("This is a critical log");
 logger2.crit("This is a critical log");
