@@ -20,7 +20,7 @@
     "winston": "^0.8.1"
   },
   "optionalDependencies": {
-    "winston-syslog": "1.0.0"
+    "winston-syslog": "1.1.1"
   },
   "devDependencies": {
     "config": "^1.11.0",
