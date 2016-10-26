@@ -324,4 +324,4 @@ function _getCallerFile() {
 }
 
 var defaultLogger = _makeLogger();
-module.exports = _.extend(_makeLogger, defaultLogger);
+module.exports = _.assignIn(_makeLogger, defaultLogger);
