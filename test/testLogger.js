@@ -46,3 +46,12 @@ logger3.alert("This is an alert log");
 logger1.emerg("This is an emergency log");
 logger2.emerg("This is an emergency log");
 logger3.emerg("This is an emergency log");
+
+//  Circular references support
+const circularObj = {};
+circularObj.circularRef = circularObj;
+circularObj.list = [circularObj, circularObj];
+
+logger1.info("The following object contains a circular ref and nothing's blowing up \\o/  \n", circularObj);
+logger2.info("The following object contains a circular ref and nothing's blowing up \\o/ \n", circularObj);
+logger3.info("The following object contains a circular ref and nothing's blowing up \\o/ \n", circularObj);

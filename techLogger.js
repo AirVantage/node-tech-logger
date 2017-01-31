@@ -139,11 +139,22 @@ function _doLog(log) {
  */
 function _log(level, log) {
 
-    var message = log.map(function(element) {
+    const toString = object => {
+        return stringify(object, (key, value) => {
+            // Do not process inner objects with a type named xxxStream
+            if (typof(value).indexOf("Stream") !== -1) {
+                return "[Stream ~]";
+            }
+            return value;
+        });
+    };
+
+
+    var message = log.map(element => {
         if (element instanceof Error) {
             return element.stack;
         } else if (typeof element !== "string") {
-            return JSON.stringify(element);
+            return toString(element);
         } else {
             return element;
         }
