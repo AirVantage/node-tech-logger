@@ -1,8 +1,8 @@
-var configuration = require("config");
+const configuration = require("config");
 
-var logger1 = require("../techLogger")("logger1");
-var logger2 = require("../techLogger")();
-var logger3 = require("../techLogger"); // Look ma, same conf as earlier
+const logger1 = require("../techLogger")("logger1");
+const logger2 = require("../techLogger")();
+const logger3 = require("../techLogger"); // Look ma, same conf as earlier
 
 logger1.setup(configuration.logging);
 logger2.setup(configuration.logging);
@@ -27,7 +27,7 @@ logger1.error("This is an error log");
 logger2.error("This is an error log");
 logger3.error("This is an error log");
 
-var apiError = {
+const apiError = {
     message: "API error message"
 };
 

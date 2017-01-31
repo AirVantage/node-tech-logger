@@ -1,20 +1,22 @@
 /**
  * Our Logger that wrap Winston logging library.
  */
-var path = require("path");
-var winston = require("winston");
-var splash = require("./lib/splash");
-var _ = require("lodash");
+const path = require("path");
+const winston = require("winston");
+const splash = require("./lib/splash");
+const _ = require("lodash");
+const stringify = require("json-stringify-safe");
+const typof = require("typeof--");
 
-var configurationDate;
-var consologger;
-var filogger;
-var syslogger;
-var syslogOptions;
+let configurationDate;
+let consologger;
+let filogger;
+let syslogger;
+let syslogOptions;
 
 // Winston levels correctly ordered
 // DO NOT TRUST Winston level definition as it does not comply to a "logical" threshold mechanism
-var levelsConfig = {
+const levelsConfig = {
     levels: {
         emerg: 7,
         alert: 6,
@@ -41,7 +43,7 @@ winston.addColors(levelsConfig.colors);
 
 function _makeLogger(prefix) {
 
-    var logPrefix = "[" + (prefix ? prefix : _getCallerFile()) + "]";
+    const logPrefix = `[${(prefix ? prefix : _getCallerFile())}]`;
 
     return {
 
@@ -63,7 +65,7 @@ function _makeLogger(prefix) {
          *
          * @return {boolean} True if the configuration has changed, otherwise false.
          */
-        setup: function(config) {
+        setup(config) {
             var currentCfg = _getLoggerConfig();
             var updated = !currentCfg || !_.isEqual(currentCfg.config, config);
             if (updated) {
@@ -72,47 +74,29 @@ function _makeLogger(prefix) {
             return updated;
         },
 
-        debug: function() {
-            _log("debug", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
+        debug: (...args) => _log("debug", _prefixLog(args, logPrefix)),
+
+        info: (...args) => _log("info", _prefixLog(args, logPrefix)),
+
+        notice: (...args) => _log("notice", _prefixLog(args, logPrefix)),
+
+        warn: (...args) => _log("warning", _prefixLog(args, logPrefix)),
+
+        error: (...args) => _log("error", _prefixLog(args, logPrefix)),
+
+        crit: (...args) => _log("crit", _prefixLog(args, logPrefix)),
+
+        alert: (...args) => _log("alert", _prefixLog(args, logPrefix)),
+
+        emerg(...args) {
+            return _log("emerg", _prefixLog(args, logPrefix));
         },
 
-        info: function() {
-            _log("info", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
+        createExpressLoggerStream(level) {
+            return { write: (message /*, encoding */ ) => _log(level, message) };
         },
 
-        notice: function() {
-            _log("notice", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        warn: function() {
-            _log("warning", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        error: function() {
-            _log("error", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        crit: function() {
-            _log("crit", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        alert: function() {
-            _log("alert", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        emerg: function() {
-            _log("emerg", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        createExpressLoggerStream: function(level) {
-            return {
-                write: function(message /*, encoding */ ) {
-                    _log(level, message);
-                }
-            };
-        },
-
-        splash: function(app, configuration) {
+        splash(app, configuration) {
             splash(this, app, configuration);
         }
     };
@@ -170,10 +154,7 @@ function _log(level, log) {
         _configureLogger();
     }
 
-    _doLog({
-        level: level,
-        message: message
-    });
+    _doLog({ level: level, message: message });
 }
 
 /**
@@ -305,9 +286,7 @@ function _getCallerFile() {
         var err = new Error();
         var currentfile;
 
-        Error.prepareStackTrace = function(err, stack) {
-            return stack;
-        };
+        Error.prepareStackTrace = (err, stack) => stack;
 
         currentfile = err.stack.shift().getFileName();
 
