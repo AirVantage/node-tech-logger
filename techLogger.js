@@ -1,12 +1,12 @@
 /**
  * Our Logger that wrap Winston logging library.
  */
-const path = require("path");
-const winston = require("winston");
-const splash = require("./lib/splash");
 const _ = require("lodash");
+const path = require("path");
+const splash = require("./lib/splash");
 const stringify = require("json-stringify-safe");
-const typof = require("typeof--");
+const typeOf = require("typeof--");
+const winston = require("winston");
 
 let configurationDate;
 let consologger;
@@ -14,9 +14,10 @@ let filogger;
 let syslogger;
 let syslogOptions;
 
+const LOG_LEVELS = ["emerg", "alert", "crit", "error", "notice", "warn", "info", "debug"];
 // Winston levels correctly ordered
 // DO NOT TRUST Winston level definition as it does not comply to a "logical" threshold mechanism
-const levelsConfig = {
+const LEVELS_CONFIG = {
     levels: {
         emerg: 7,
         alert: 6,
@@ -39,14 +40,13 @@ const levelsConfig = {
     }
 };
 // Make winston aware of these colors
-winston.addColors(levelsConfig.colors);
+winston.addColors(LEVELS_CONFIG.colors);
 
-function _makeLogger(prefix) {
+function _makeLogger(prefix = _getCallerFile()) {
 
-    const logPrefix = `[${(prefix ? prefix : _getCallerFile())}]`;
+    const logPrefix = `[${(prefix)}]`;
 
-    return {
-
+    let logger = {
         /**
          * Setup the logger configuration
          * @param  {Object} config                           See below for details
@@ -74,24 +74,6 @@ function _makeLogger(prefix) {
             return updated;
         },
 
-        debug: (...args) => _log("debug", _prefixLog(args, logPrefix)),
-
-        info: (...args) => _log("info", _prefixLog(args, logPrefix)),
-
-        notice: (...args) => _log("notice", _prefixLog(args, logPrefix)),
-
-        warn: (...args) => _log("warning", _prefixLog(args, logPrefix)),
-
-        error: (...args) => _log("error", _prefixLog(args, logPrefix)),
-
-        crit: (...args) => _log("crit", _prefixLog(args, logPrefix)),
-
-        alert: (...args) => _log("alert", _prefixLog(args, logPrefix)),
-
-        emerg(...args) {
-            return _log("emerg", _prefixLog(args, logPrefix));
-        },
-
         createExpressLoggerStream(level) {
             return { write: (message /*, encoding */ ) => _log(level, message) };
         },
@@ -100,6 +82,13 @@ function _makeLogger(prefix) {
             splash(this, app, configuration);
         }
     };
+
+    // Initialize all logger levels methods
+    LOG_LEVELS.forEach(level => {
+        logger[level] = (...args) => _log(level, _prefixLog(args, logPrefix));
+    });
+
+    return logger;
 }
 
 function _prefixLog(log, logPrefix) {
@@ -142,7 +131,7 @@ function _log(level, log) {
     const toString = object => {
         return stringify(object, (key, value) => {
             // Do not process inner objects with a type named xxxStream
-            if (typof(value).indexOf("Stream") !== -1) {
+            if (typeOf(value).indexOf("Stream") !== -1) {
                 return "[Stream ~]";
             }
             return value;
@@ -165,7 +154,7 @@ function _log(level, log) {
         _configureLogger();
     }
 
-    _doLog({ level: level, message: message });
+    _doLog({ level, message });
 }
 
 /**
@@ -185,7 +174,7 @@ function _getLoggerConfig() {
 function _setLoggerConfig(config) {
     global.NODE_TECH_LOGGER_CFG = {
         date: new Date().getTime(),
-        config: config
+        config
     };
 }
 
@@ -223,7 +212,7 @@ function _configureConsoleLogger(config) {
         consologger.remove(winston.transports.Console);
     } else {
         consologger = new(winston.Logger)({});
-        consologger.setLevels(levelsConfig.levels);
+        consologger.setLevels(LEVELS_CONFIG.levels);
     }
     consologger.add(winston.transports.Console, {
         colorize: true,
@@ -249,7 +238,7 @@ function _configureFileLogger(config) {
                 })
             ]
         });
-        filogger.setLevels(levelsConfig.levels);
+        filogger.setLevels(LEVELS_CONFIG.levels);
     }
 }
 
@@ -274,11 +263,9 @@ function _configureSyslogLogger(config) {
 
         syslogger = new(winston.Logger)({
             colors: winston.config.syslog.colors,
-            transports: [
-                new winston.transports.Syslog(options)
-            ]
+            transports: [new winston.transports.Syslog(options)]
         });
-        syslogger.setLevels(levelsConfig.levels);
+        syslogger.setLevels(LEVELS_CONFIG.levels);
     }
 }
 

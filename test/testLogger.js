@@ -55,3 +55,11 @@ circularObj.list = [circularObj, circularObj];
 logger1.info("The following object contains a circular ref and nothing's blowing up \\o/  \n", circularObj);
 logger2.info("The following object contains a circular ref and nothing's blowing up \\o/ \n", circularObj);
 logger3.info("The following object contains a circular ref and nothing's blowing up \\o/ \n", circularObj);
+
+// Object of xxxStream type
+class TestStream {}
+var testStream = new TestStream();
+
+logger1.info("The following object is a TestStream and I will not log it \\o/  \n", testStream);
+logger2.info("The following object is a TestStream and I will not log it \\o/  \n", testStream);
+logger3.info("The following object is a TestStream and I will not log it \\o/  \n", testStream);
