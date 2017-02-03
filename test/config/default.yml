@@ -24,3 +24,6 @@ api:
   portal:
     serverUrl : http://localhost:8080
 
+fakeCredentials:
+  user: "sebz"
+  password: "guessWhat!"

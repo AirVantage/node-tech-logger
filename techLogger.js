@@ -1,20 +1,23 @@
 /**
  * Our Logger that wrap Winston logging library.
  */
-var path = require("path");
-var winston = require("winston");
-var splash = require("./lib/splash");
-var _ = require("lodash");
+const _ = require("lodash");
+const path = require("path");
+const splash = require("./lib/splash");
+const stringify = require("json-stringify-safe");
+const typeOf = require("typeof--");
+const winston = require("winston");
 
-var configurationDate;
-var consologger;
-var filogger;
-var syslogger;
-var syslogOptions;
+let configurationDate;
+let consologger;
+let filogger;
+let syslogger;
+let syslogOptions;
 
+const LOG_LEVELS = ["emerg", "alert", "crit", "error", "notice", "warn", "info", "debug"];
 // Winston levels correctly ordered
 // DO NOT TRUST Winston level definition as it does not comply to a "logical" threshold mechanism
-var levelsConfig = {
+const LEVELS_CONFIG = {
     levels: {
         emerg: 7,
         alert: 6,
@@ -37,14 +40,13 @@ var levelsConfig = {
     }
 };
 // Make winston aware of these colors
-winston.addColors(levelsConfig.colors);
+winston.addColors(LEVELS_CONFIG.colors);
 
-function _makeLogger(prefix) {
+function _makeLogger(prefix = _getCallerFile()) {
 
-    var logPrefix = "[" + (prefix ? prefix : _getCallerFile()) + "]";
+    const logPrefix = `[${(prefix)}]`;
 
-    return {
-
+    let logger = {
         /**
          * Setup the logger configuration
          * @param  {Object} config                           See below for details
@@ -63,7 +65,7 @@ function _makeLogger(prefix) {
          *
          * @return {boolean} True if the configuration has changed, otherwise false.
          */
-        setup: function(config) {
+        setup(config) {
             var currentCfg = _getLoggerConfig();
             var updated = !currentCfg || !_.isEqual(currentCfg.config, config);
             if (updated) {
@@ -72,50 +74,21 @@ function _makeLogger(prefix) {
             return updated;
         },
 
-        debug: function() {
-            _log("debug", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
+        createExpressLoggerStream(level) {
+            return { write: (message /*, encoding */ ) => _log(level, message) };
         },
 
-        info: function() {
-            _log("info", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        notice: function() {
-            _log("notice", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        warn: function() {
-            _log("warning", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        error: function() {
-            _log("error", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        crit: function() {
-            _log("crit", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        alert: function() {
-            _log("alert", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        emerg: function() {
-            _log("emerg", _prefixLog(Array.prototype.slice.call(arguments), logPrefix));
-        },
-
-        createExpressLoggerStream: function(level) {
-            return {
-                write: function(message /*, encoding */ ) {
-                    _log(level, message);
-                }
-            };
-        },
-
-        splash: function(app, configuration) {
+        splash(app, configuration) {
             splash(this, app, configuration);
         }
     };
+
+    // Initialize all logger levels methods
+    LOG_LEVELS.forEach(level => {
+        logger[level] = (...args) => _log(level, _prefixLog(args, logPrefix));
+    });
+
+    return logger;
 }
 
 function _prefixLog(log, logPrefix) {
@@ -155,11 +128,22 @@ function _doLog(log) {
  */
 function _log(level, log) {
 
-    var message = log.map(function(element) {
+    const toString = object => {
+        return stringify(object, (key, value) => {
+            // Do not process inner objects with a type named xxxStream
+            if (typeOf(value).indexOf("Stream") !== -1) {
+                return "[Stream ~]";
+            }
+            return value;
+        });
+    };
+
+
+    var message = log.map(element => {
         if (element instanceof Error) {
             return element.stack;
         } else if (typeof element !== "string") {
-            return JSON.stringify(element);
+            return toString(element);
         } else {
             return element;
         }
@@ -170,10 +154,7 @@ function _log(level, log) {
         _configureLogger();
     }
 
-    _doLog({
-        level: level,
-        message: message
-    });
+    _doLog({ level, message });
 }
 
 /**
@@ -193,7 +174,7 @@ function _getLoggerConfig() {
 function _setLoggerConfig(config) {
     global.NODE_TECH_LOGGER_CFG = {
         date: new Date().getTime(),
-        config: config
+        config
     };
 }
 
@@ -231,7 +212,7 @@ function _configureConsoleLogger(config) {
         consologger.remove(winston.transports.Console);
     } else {
         consologger = new(winston.Logger)({});
-        consologger.setLevels(levelsConfig.levels);
+        consologger.setLevels(LEVELS_CONFIG.levels);
     }
     consologger.add(winston.transports.Console, {
         colorize: true,
@@ -257,7 +238,7 @@ function _configureFileLogger(config) {
                 })
             ]
         });
-        filogger.setLevels(levelsConfig.levels);
+        filogger.setLevels(LEVELS_CONFIG.levels);
     }
 }
 
@@ -282,11 +263,9 @@ function _configureSyslogLogger(config) {
 
         syslogger = new(winston.Logger)({
             colors: winston.config.syslog.colors,
-            transports: [
-                new winston.transports.Syslog(options)
-            ]
+            transports: [new winston.transports.Syslog(options)]
         });
-        syslogger.setLevels(levelsConfig.levels);
+        syslogger.setLevels(LEVELS_CONFIG.levels);
     }
 }
 
@@ -305,9 +284,7 @@ function _getCallerFile() {
         var err = new Error();
         var currentfile;
 
-        Error.prepareStackTrace = function(err, stack) {
-            return stack;
-        };
+        Error.prepareStackTrace = (err, stack) => stack;
 
         currentfile = err.stack.shift().getFileName();
 
