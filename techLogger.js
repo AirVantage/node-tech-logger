@@ -1,12 +1,12 @@
 /**
  * Our Logger that wrap Winston logging library.
  */
-const _ = require("lodash");
-const path = require("path");
-const splash = require("./lib/splash");
-const stringify = require("json-stringify-safe");
-const typeOf = require("typeof--");
-const winston = require("winston");
+const _ = require('lodash');
+const path = require('path');
+const splash = require('./lib/splash');
+const stringify = require('json-stringify-safe');
+const typeOf = require('typeof--');
+const winston = require('winston');
 
 let configurationDate;
 let consologger;
@@ -14,7 +14,7 @@ let filogger;
 let syslogger;
 let syslogOptions;
 
-const LOG_LEVELS = ["emerg", "alert", "crit", "error", "notice", "warn", "info", "debug"];
+const LOG_LEVELS = ['emerg', 'alert', 'crit', 'error', 'notice', 'warn', 'info', 'debug'];
 // Winston levels correctly ordered
 // DO NOT TRUST Winston level definition as it does not comply to a "logical" threshold mechanism
 const LEVELS_CONFIG = {
@@ -29,22 +29,21 @@ const LEVELS_CONFIG = {
         debug: 0
     },
     colors: {
-        emerg: "magenta",
-        alert: "magenta",
-        crit: "red",
-        error: "red",
-        warning: "yellow",
-        notice: "green",
-        info: "blue",
-        debug: "cyan"
+        emerg: 'magenta',
+        alert: 'magenta',
+        crit: 'red',
+        error: 'red',
+        warning: 'yellow',
+        notice: 'green',
+        info: 'blue',
+        debug: 'cyan'
     }
 };
 // Make winston aware of these colors
 winston.addColors(LEVELS_CONFIG.colors);
 
 function _makeLogger(prefix = _getCallerFile()) {
-
-    const logPrefix = `[${(prefix)}]`;
+    const logPrefix = `[${prefix}]`;
 
     let logger = {
         /**
@@ -75,7 +74,7 @@ function _makeLogger(prefix = _getCallerFile()) {
         },
 
         createExpressLoggerStream(level) {
-            return { write: (message /*, encoding */ ) => _log(level, message) };
+            return { write: (message /*, encoding */) => _log(level, message) };
         },
 
         splash(app, configuration) {
@@ -106,7 +105,6 @@ function _prefixLog(log, logPrefix) {
  *             {String} log.message
  */
 function _doLog(log) {
-
     if (consologger) {
         consologger.log(log.level, log.message);
     }
@@ -127,27 +125,27 @@ function _doLog(log) {
  * @param  {Array}  log    list of message parts
  */
 function _log(level, log) {
-
     const toString = object => {
         return stringify(object, (key, value) => {
             // Do not process inner objects with a type named xxxStream
-            if (typeOf(value).indexOf("Stream") !== -1) {
-                return "[Stream ~]";
+            if (typeOf(value).indexOf('Stream') !== -1) {
+                return '[Stream ~]';
             }
             return value;
         });
     };
 
-
-    var message = log.map(element => {
-        if (element instanceof Error) {
-            return element.stack;
-        } else if (typeof element !== "string") {
-            return toString(element);
-        } else {
-            return element;
-        }
-    }).join(" ");
+    var message = log
+        .map(element => {
+            if (element instanceof Error) {
+                return element.stack;
+            } else if (typeof element !== 'string') {
+                return toString(element);
+            } else {
+                return element;
+            }
+        })
+        .join(' ');
 
     if (!configurationDate || configurationDate < _getLoggerConfig().date) {
         // Logger needs to be configured
@@ -188,9 +186,9 @@ function _configureLogger() {
         _setLoggerConfig({});
         loggerConfig = _getLoggerConfig();
 
-        var msg = "\n\n!!! =========================================== !!!";
-        msg += "\n!!!  No configuration set for node-tech-logger  !!!";
-        msg += "\n!!! =========================================== !!!\n\n";
+        var msg = '\n\n!!! =========================================== !!!';
+        msg += '\n!!!  No configuration set for node-tech-logger  !!!';
+        msg += '\n!!! =========================================== !!!\n\n';
         console.warn(msg);
     }
 
@@ -207,16 +205,15 @@ function _configureLogger() {
  * Configure console logger
  */
 function _configureConsoleLogger(config) {
-
     if (consologger) {
         consologger.remove(winston.transports.Console);
     } else {
-        consologger = new(winston.Logger)({});
+        consologger = new winston.Logger({});
         consologger.setLevels(LEVELS_CONFIG.levels);
     }
     consologger.add(winston.transports.Console, {
         colorize: true,
-        level: (config.console && config.console.thresholdLevel) || "info"
+        level: (config.console && config.console.thresholdLevel) || 'info'
     });
 }
 
@@ -224,17 +221,16 @@ function _configureConsoleLogger(config) {
  * Configure file logger
  */
 function _configureFileLogger(config) {
-
     filogger = null;
     if (config.file) {
-        filogger = new(winston.Logger)({
+        filogger = new winston.Logger({
             transports: [
                 new winston.transports.File({
                     filename: config.file.name,
                     maxsize: config.file.maxSize,
                     maxFiles: config.file.maxNumber,
                     json: config.file.json || false,
-                    level: config.file.thresholdLevel || "info"
+                    level: config.file.thresholdLevel || 'info'
                 })
             ]
         });
@@ -246,22 +242,21 @@ function _configureFileLogger(config) {
  * Configure syslog logger
  */
 function _configureSyslogLogger(config) {
-
     syslogger = null;
     if (config.syslog) {
         syslogOptions = config.syslog;
-        require("winston-syslog");
+        require('winston-syslog');
         // syslog options
         var options = {
             host: config.syslog.host,
             port: 514,
-            protocol: "udp4",
+            protocol: 'udp4',
             app_name: config.syslog.appName,
-            facility: "local0",
-            level: config.syslog.thresholdLevel || "info"
+            facility: 'local0',
+            level: config.syslog.thresholdLevel || 'info'
         };
 
-        syslogger = new(winston.Logger)({
+        syslogger = new winston.Logger({
             colors: winston.config.syslog.colors,
             transports: [new winston.transports.Syslog(options)]
         });
@@ -276,7 +271,7 @@ function _getCallerFile() {
     var originalFunc = Error.prepareStackTrace;
 
     function shouldSkipFile(filename) {
-        return (_.endsWith(currentfile, "techLogger.js") || currentfile === "module.js" || currentfile === "node.js");
+        return _.endsWith(currentfile, 'techLogger.js') || currentfile === 'module.js' || currentfile === 'node.js';
     }
 
     var callerfile;
@@ -292,12 +287,11 @@ function _getCallerFile() {
             currentfile = err.stack.shift().getFileName();
         }
         callerfile = currentfile;
-
     } catch (e) {}
 
     Error.prepareStackTrace = originalFunc;
 
-    return (callerfile ? callerfile.split(path.sep).pop() : callerfile);
+    return callerfile ? callerfile.split(path.sep).pop() : callerfile;
 }
 
 var defaultLogger = _makeLogger();

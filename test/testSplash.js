@@ -1,8 +1,8 @@
-const configuration = require("config");
-const logger = require("../techLogger");
+const configuration = require('config');
+const logger = require('../techLogger');
 
 const app = {
-    get: () => "Test Splash"
+    get: () => 'Test Splash'
 };
 
 logger.setup(configuration.logging);
