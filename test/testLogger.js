@@ -28,7 +28,7 @@ logger2.error('This is an error log');
 logger3.error('This is an error log');
 
 const apiError = {
-    message: 'API error message'
+  message: 'API error message'
 };
 
 logger1.error('This is an error log', new Error(apiError.message));
