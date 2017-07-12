@@ -1,6 +1,6 @@
 {
   "name": "node-tech-logger",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Winston logger customized for AirVantage",
   "license": "MIT",
   "main": "techLogger.js",
@@ -11,7 +11,10 @@
   "scripts": {
     "test": "export NODE_CONFIG_DIR=test/config;node test/testSplash.js && node test/testLogger.js"
   },
-  "keywords": ["logger", "winston"],
+  "keywords": [
+    "logger",
+    "winston"
+  ],
   "dependencies": {
     "json-stringify-safe": "^5.0.1",
     "lodash": "^4.16.0",
@@ -36,10 +39,18 @@
       "es6": true,
       "mocha": true
     },
-    "extends": ["eslint:recommended"],
+    "extends": [
+      "eslint:recommended"
+    ],
     "rules": {
-      "linebreak-style": ["error", "unix"],
-      "max-params": ["warn", 3]
+      "linebreak-style": [
+        "error",
+        "unix"
+      ],
+      "max-params": [
+        "warn",
+        3
+      ]
     }
   }
 }
