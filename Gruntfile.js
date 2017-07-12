@@ -13,10 +13,6 @@ module.exports = function(grunt) {
         }
       }
     },
-    tag: {
-      options: {
-        tagName: '<%= version.match(/\\d*/) %>.x'
-      }
-    }
+    tag: { options: { tagName: '<%= version.match(/\\d*/) %>.x' } }
   });
 };
