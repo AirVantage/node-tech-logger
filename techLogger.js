@@ -23,7 +23,7 @@ const LEVELS_CONFIG = {
     alert: 6,
     crit: 5,
     error: 4,
-    warning: 3,
+    warn: 3,
     notice: 2,
     info: 1,
     debug: 0
@@ -33,7 +33,7 @@ const LEVELS_CONFIG = {
     alert: 'magenta',
     crit: 'red',
     error: 'red',
-    warning: 'yellow',
+    warn: 'yellow',
     notice: 'green',
     info: 'blue',
     debug: 'cyan'
