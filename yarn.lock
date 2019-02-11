@@ -1326,16 +1326,17 @@ which@~1.0.5:
   resolved "https://registry.yarnpkg.com/which/-/which-1.0.9.tgz#460c1da0f810103d0321a9b633af9e575e64486f"
   integrity sha1-RgwdoPgQED0DIam2M6+eV15kSG8=
 
-winston-syslog@1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/winston-syslog/-/winston-syslog-1.1.2.tgz#3f1e56b0f37ee60343c0a0a5669a7cfef7422f7a"
-  integrity sha1-Px5WsPN+5gNDwKClZpp8/vdCL3o=
+winston-syslog@^1.2.5:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/winston-syslog/-/winston-syslog-1.2.6.tgz#4e7990ed0a9f1932187ddd6ec9e038357980961f"
+  integrity sha1-TnmQ7QqfGTIYfd1uyeA4NXmAlh8=
   dependencies:
     cycle "~1.0.3"
     glossy "0.x.x"
+  optionalDependencies:
     unix-dgram "~0.2.1"
 
-winston@1:
+winston@^1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/winston/-/winston-1.1.2.tgz#68edd769ff79d4f9528cf0e5d80021aade67480c"
   integrity sha1-aO3Xaf951PlSjPDl2AAhqt5nSAw=
